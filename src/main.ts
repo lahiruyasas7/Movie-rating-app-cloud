@@ -3,7 +3,9 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { setupSwagger } from './configs/swager-config/swagger';
-import bodyParser from 'body-parser';
+//import bodyParser from 'body-parser';
+//import * as cookieParser from 'cookie-parser';
+import * as bodyParser from 'body-parser'; // Fix import for body-parser
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {

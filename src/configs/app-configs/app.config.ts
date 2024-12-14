@@ -8,7 +8,7 @@ export default registerAs('app', () => ({
   port: applicationConfig.port,
   apiPrefix: applicationConfig.apiPrefix,
   fallbackLanguage: applicationConfig.appFallBackLanguage,
-  frontendUrl: applicationConfig.frontendUrl,
+  //frontendUrl: applicationConfig.frontendUrl,
   jwtSecret: applicationConfig.jwtSecret,
   nodemailerEmail: applicationConfig.nodemailerEmail,
   nodemailerPassword: applicationConfig.nodemailerPassword,
