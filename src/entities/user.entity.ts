@@ -11,7 +11,7 @@ export class UserEntity {
   @Column()
   password: string;
 
-  @Column({ nullable: false })
+  @Column()
   firstName: string;
 
   @Column({ nullable: true })
