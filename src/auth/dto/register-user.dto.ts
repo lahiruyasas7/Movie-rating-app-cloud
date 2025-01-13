@@ -28,7 +28,12 @@ export class RegisterUserDto {
   @IsStrongPassword()
   password: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    type: 'string',
+    description: 'Enter first name',
+    required: true,
+    example: 'John',
+  })
   @IsNotEmpty()
   @IsString()
   firstName: string;
