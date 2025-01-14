@@ -13,6 +13,7 @@ import { UserEntity } from 'src/entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,9 +22,10 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly entityManager: EntityManager,
+    private readonly jwtService: JwtService,
   ) {}
 
-  ///////////////////  Student Registration //////////////////////////
+  ///////////////////  User Registration //////////////////////////
 
   async register(registerUserDto: RegisterUserDto) {
     try {
@@ -77,7 +79,53 @@ export class AuthService {
       throw new UnauthorizedException('Failed to register new user');
     }
   }
+
+  ////// Login User ////////
+  async loginUser(loginUserDto: LoginUserDto) {
+    try {
+      this.logger.debug('login user');
+      const { email, password } = loginUserDto;
+
+      const existingUser = await this.userRepository.findOne({
+        where: { email },
+      });
+      if (!existingUser) {
+        throw new ConflictException('User not found');
+      }
+
+      // check password
+
+      const isValidPassword = await bcrypt.compare(
+        password,
+        existingUser.password,
+      );
+
+      if (!isValidPassword) {
+        throw new ConflictException('Invalid password');
+      }
+
+      // JWT payload
+      const payload = {
+        studentId: existingUser.userId,
+        email: existingUser.email,
+      };
+
+      // Create JWT token
+      const token = this.jwtService.sign(payload, { expiresIn: '24h' });
+
+      return { user: payload, token };
+    } catch (error) {
+      this.logger.error(`login ${error}`);
+      // conflict errors
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      // catch errors
+      throw new UnauthorizedException('Failed to login');
+    }
+  }
 }
+
 @Injectable()
 export class JWTAuthService {
   constructor(
@@ -90,4 +138,7 @@ export class JWTAuthService {
       secret: this.configService.get('app.jwtSecret'),
     });
   }
+}
+function loginUSer() {
+  throw new Error('Function not implemented.');
 }
