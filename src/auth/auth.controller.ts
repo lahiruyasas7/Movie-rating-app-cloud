@@ -6,17 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import {
+  ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @ApiTags('Auth') // swagger tag
 @Controller('auth')
@@ -32,4 +35,17 @@ export class AuthController {
   register(@Body() registerUserDto: RegisterUserDto) {
     return this.authService.register(registerUserDto);
   }
+
+    ///////// login /////////////
+    @ApiOperation({ summary: 'login a user' }) // Operation summary swagger
+    @ApiResponse({ status: 409, description: 'Invalid password' }) // api response swagger
+    @Post('login')
+    @HttpCode(200)
+    @ApiBody({
+      type: LoginUserDto,
+      required: true,
+    })
+    async login(@Body() loginAuthDto: LoginUserDto) {
+      return this.authService.loginUser(loginAuthDto);
+    }
 }
