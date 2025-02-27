@@ -106,7 +106,7 @@ export class AuthService {
 
       // JWT payload
       const payload = {
-        studentId: existingUser.userId,
+        userId: existingUser.userId,
         email: existingUser.email,
       };
 
