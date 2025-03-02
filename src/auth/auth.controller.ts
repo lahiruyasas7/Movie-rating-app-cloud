@@ -1,34 +1,51 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
+@ApiTags('Auth') // swagger tag
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  ////////// register ///////////
+  @ApiOperation({ summary: 'Register a new User' }) // Operation summary swagger
+  @ApiResponse({ status: 201, description: '' }) // api response swagger
+  @ApiResponse({ status: 409, description: 'Email is already in use' }) // api response swagger
+  //@ApiConsumes('form-data')
+  @Post('register')
+  register(@Body() registerUserDto: RegisterUserDto) {
+    return this.authService.register(registerUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
-  }
+    ///////// login /////////////
+    @ApiOperation({ summary: 'login a user' }) // Operation summary swagger
+    @ApiResponse({ status: 409, description: 'Invalid password' }) // api response swagger
+    @Post('login')
+    @HttpCode(200)
+    @ApiBody({
+      type: LoginUserDto,
+      required: true,
+    })
+    async login(@Body() loginAuthDto: LoginUserDto) {
+      return this.authService.loginUser(loginAuthDto);
+    }
 }
