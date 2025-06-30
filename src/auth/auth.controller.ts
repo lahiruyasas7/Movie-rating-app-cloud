@@ -20,6 +20,8 @@ import {
 } from '@nestjs/swagger';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { Res } from '@nestjs/common';
+import { Response } from 'express';
 
 @ApiTags('Auth') // swagger tag
 @Controller('auth')
@@ -36,16 +38,18 @@ export class AuthController {
     return this.authService.register(registerUserDto);
   }
 
-    ///////// login /////////////
-    @ApiOperation({ summary: 'login a user' }) // Operation summary swagger
-    @ApiResponse({ status: 409, description: 'Invalid password' }) // api response swagger
-    @Post('login')
-    @HttpCode(200)
-    @ApiBody({
-      type: LoginUserDto,
-      required: true,
-    })
-    async login(@Body() loginAuthDto: LoginUserDto) {
-      return this.authService.loginUser(loginAuthDto);
-    }
+  ///////// login /////////////
+  @Post('login')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'login a user' })
+  @ApiResponse({ status: 409, description: 'Invalid password' })
+  @ApiBody({ type: LoginUserDto })
+  async login(
+    @Body() loginDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.loginUser(loginDto, res);
+  }
+
+  ////refresh token //////////
 }

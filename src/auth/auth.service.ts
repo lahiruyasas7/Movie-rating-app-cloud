@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   Logger,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -14,6 +15,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -81,51 +83,69 @@ export class AuthService {
   }
 
   ////// Login User ////////
-  async loginUser(loginUserDto: LoginUserDto) {
+  /**
+   * Login user and return access token and refresh token
+   * @param loginUserDto
+   * @param res
+   */
+  async loginUser(
+    loginUserDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     try {
-      this.logger.debug('login user');
       const { email, password } = loginUserDto;
 
       const existingUser = await this.userRepository.findOne({
         where: { email },
       });
-      if (!existingUser) {
-        throw new ConflictException('User not found');
-      }
-
-      // check password
+      if (!existingUser) throw new ConflictException('User not found');
 
       const isValidPassword = await bcrypt.compare(
         password,
         existingUser.password,
       );
+      if (!isValidPassword) throw new ConflictException('Invalid password');
 
-      if (!isValidPassword) {
-        throw new ConflictException('Invalid password');
-      }
-
-      // JWT payload
       const payload = {
         userId: existingUser.userId,
         email: existingUser.email,
       };
 
-      // Create JWT token
-      const token = this.jwtService.sign(payload, { expiresIn: '24h' });
+      const tokens = this.generateTokens(payload);
 
-      return { user: payload, token };
+      // Send refreshToken in secure HttpOnly cookie
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: false, // Set to true in production with HTTPS
+        sameSite: 'lax',
+        path: '/auth/refresh',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return { accessToken: tokens.accessToken, user: payload };
     } catch (error) {
-      this.logger.error(`login ${error}`);
-      // conflict errors
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      // catch errors
-      throw new UnauthorizedException('Failed to login');
+      throw error instanceof ConflictException
+        ? error
+        : new UnauthorizedException('Failed to login');
     }
+  }
+
+  generateTokens(payload: any) {
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '15m',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: '7d',
+    });
+
+    return { accessToken, refreshToken };
   }
 }
 
+// auth.service.ts
 @Injectable()
 export class JWTAuthService {
   constructor(
