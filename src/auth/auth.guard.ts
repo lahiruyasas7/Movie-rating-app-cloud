@@ -1,33 +1,35 @@
 import {
-    CanActivate,
-    ExecutionContext,
-    Injectable,
-    UnauthorizedException,
-    ForbiddenException,
-  } from '@nestjs/common';
-  
-  import { JWTAuthService } from './auth.service';
-  
-  @Injectable()
-  export class AuthGuard implements CanActivate {
-    constructor(private readonly jwtauthService: JWTAuthService) {}
-  
-    async canActivate(context: ExecutionContext): Promise<boolean> {
-      try {
-        const request = context.switchToHttp().getRequest();
-        const { authorization }: any = request.headers;
-        if (!authorization || authorization.trim() === '') {
-          throw new UnauthorizedException('Please provide token');
-        }
-        const authToken = authorization.replace(/bearer/gim, '').trim();
-        const resp = await this.jwtauthService.validateToken(authToken);
-        request.decodedData = resp;
-        return true;
-      } catch (error) {
-        console.log('auth error - ', error.message);
-        throw new ForbiddenException(
-          error.message || 'session expired! Please sign In',
-        );
-      }
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { JWTAuthService } from './auth.service';
+
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(private readonly jwtauthService: JWTAuthService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request: Request = context.switchToHttp().getRequest();
+    const authHeader = request.headers['authorization'];
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException(
+        'Missing or invalid Authorization header',
+      );
+    }
+
+    const token = authHeader.split(' ')[1].trim();
+
+    try {
+      const decoded = await this.jwtauthService.validateToken(token);
+      request['user'] = decoded; // attach user data to request
+      return true;
+    } catch (err) {
+      throw new ForbiddenException('Invalid or expired access token');
     }
   }
+}
