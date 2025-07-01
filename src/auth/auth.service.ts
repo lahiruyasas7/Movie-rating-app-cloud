@@ -15,7 +15,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -127,6 +127,36 @@ export class AuthService {
       throw error instanceof ConflictException
         ? error
         : new UnauthorizedException('Failed to login');
+    }
+  }
+
+  /////////refresh token //////////
+  async refreshTokens(req: Request, res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) throw new UnauthorizedException('No refresh token');
+
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+
+      const newTokens = this.generateTokens({
+        userId: payload.userId,
+        email: payload.email,
+      });
+
+      // Set new refresh token in HttpOnly cookie
+      res.cookie('refreshToken', newTokens.refreshToken, {
+        httpOnly: true,
+        secure: false, // set to true in production with HTTPS
+        sameSite: 'lax',
+        path: '/auth/refresh',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return { accessToken: newTokens.accessToken };
+    } catch (err) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 

@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   HttpCode,
+  UnauthorizedException,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -21,7 +23,7 @@ import {
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @ApiTags('Auth') // swagger tag
 @Controller('auth')
@@ -52,4 +54,13 @@ export class AuthController {
   }
 
   ////refresh token //////////
+
+  @Post('refresh')
+  @HttpCode(200)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.refreshTokens(req, res);
+  }
 }
