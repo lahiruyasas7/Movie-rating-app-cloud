@@ -173,6 +173,24 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  //get user details
+  async getUserById(id: string) {
+    const userData = await this.userRepository.findOne({
+      where: { userId: id },
+    });
+
+    return {
+      userId: userData.userId,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      phone: userData.phone,
+      profileImageUrl: userData.profileImageUrl,
+      address: userData.address,
+      dateOfBirth: userData.dateOfBirth,
+    };
+  }
 }
 
 // auth.service.ts
