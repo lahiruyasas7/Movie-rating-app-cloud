@@ -1,34 +1,32 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core'; //Used to create the main NestJS application instance.
+import { AppModule } from './app.module'; //The root module of your app. Nest starts by loading this.
+import { ValidationPipe } from '@nestjs/common'; //Adds automatic request validation using decorators like @IsString() from class-validator.
+import { ConfigService } from '@nestjs/config'; //Provides access to .env values like app.port.
 import { setupSwagger } from './configs/swager-config/swagger';
-//import bodyParser from 'body-parser';
-//import * as cookieParser from 'cookie-parser';
-import * as bodyParser from 'body-parser'; // Fix import for body-parser
-import * as cookieParser from 'cookie-parser';
+import * as bodyParser from 'body-parser'; //Middleware to parse request bodies (JSON, URL-encoded) and cookies, respectively.
+import * as cookieParser from 'cookie-parser'; //Middleware to parse request bodies (JSON, URL-encoded) and cookies, respectively.
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule); //Initializes the NestJS app using the root module.
   app.setGlobalPrefix(process.env.API_PREFIX, {
-    exclude: ['/'],
+    exclude: ['/'], //Adds a prefix like /api to all routes except /, which remains unprefixed. Great for versioning.
   });
-  app.useGlobalPipes(new ValidationPipe());
-  const configService = app.get(ConfigService);
+  app.useGlobalPipes(new ValidationPipe()); //Ensures that incoming requests conform to your DTO validation rules.
+  const configService = app.get(ConfigService); //Fetches config settings like port, API keys, DB credentials from .env.
   //cors configuration
   app.enableCors({
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], //Allows cross-origin requests from your frontend (likely running on port 5173, e.g., Vite).
     credentials: true,
-    origin: '*',
+    origin: 'http://localhost:5173',
   });
 
-   // Setup Swagger
-   setupSwagger(app);
-   app.use(bodyParser.json({ limit: '5000mb' }));
-   app.use(bodyParser.urlencoded({ limit: '5000mb', extended: true }));
-   app.use(cookieParser());
-   await app.listen(configService.get('app.port'), () => {
-     console.log(`Server running at port: ${configService.get('app.port')}`);
-   });
+  // Setup Swagger
+  setupSwagger(app);
+  app.use(bodyParser.json({ limit: '5000mb' }));
+  app.use(bodyParser.urlencoded({ limit: '5000mb', extended: true }));
+  app.use(cookieParser());  //Parses cookies in incoming requests. Useful for sessions/authentication.
+  await app.listen(configService.get('app.port'), () => {
+    console.log(`Server running at port: ${configService.get('app.port')}`);
+  });
 }
 bootstrap();

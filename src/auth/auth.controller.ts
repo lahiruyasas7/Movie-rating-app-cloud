@@ -9,11 +9,18 @@ import {
   HttpCode,
   UnauthorizedException,
   Req,
+  ParseUUIDPipe,
+  ForbiddenException,
+  HttpStatus,
+  ParseIntPipe,
+  NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOperation,
@@ -24,6 +31,8 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Res } from '@nestjs/common';
 import { Response, Request } from 'express';
+import { UserEntity } from 'src/entities/user.entity';
+import { AuthGuard } from './auth.guard';
 
 @ApiTags('Auth') // swagger tag
 @Controller('auth')
@@ -62,5 +71,19 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.refreshTokens(req, res);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Get All User Details for logged user',
+  })
+  @Get(':id')
+  @UseGuards(AuthGuard)
+  async getUserById(@Param('id') id: string) {
+    const user = await this.authService.getUserById(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 }
