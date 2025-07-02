@@ -3,13 +3,11 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { setupSwagger } from './configs/swager-config/swagger';
-//import bodyParser from 'body-parser';
-//import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser'; // Fix import for body-parser
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix(process.env.API_PREFIX, {
     exclude: ['/'],
   });
@@ -19,16 +17,16 @@ async function bootstrap() {
   app.enableCors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     credentials: true,
-    origin: '*',
+    origin: 'http://localhost:5173',
   });
 
-   // Setup Swagger
-   setupSwagger(app);
-   app.use(bodyParser.json({ limit: '5000mb' }));
-   app.use(bodyParser.urlencoded({ limit: '5000mb', extended: true }));
-   app.use(cookieParser());
-   await app.listen(configService.get('app.port'), () => {
-     console.log(`Server running at port: ${configService.get('app.port')}`);
-   });
+  // Setup Swagger
+  setupSwagger(app);
+  app.use(bodyParser.json({ limit: '5000mb' }));
+  app.use(bodyParser.urlencoded({ limit: '5000mb', extended: true }));
+  app.use(cookieParser());
+  await app.listen(configService.get('app.port'), () => {
+    console.log(`Server running at port: ${configService.get('app.port')}`);
+  });
 }
 bootstrap();
