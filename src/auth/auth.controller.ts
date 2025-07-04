@@ -73,15 +73,18 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(PassportAuthGuard('google'))
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
-    const { accessToken } = await this.authService.loginWithGoogle(
+    const { accessToken, user } = await this.authService.loginWithGoogle(
       req.user,
       res,
     );
 
+    const queryParams = new URLSearchParams({
+      accessToken,
+      user: JSON.stringify(user),
+    }).toString();
+
     // redirect to frontend with token in query
-    res.redirect(
-      `http://localhost:5173/google-success?accessToken=${accessToken}`,
-    );
+    res.redirect(`http://localhost:5173/google-success?${queryParams}`);
   }
 
   @ApiBearerAuth('JWT-auth')
