@@ -3,26 +3,18 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   HttpCode,
-  UnauthorizedException,
   Req,
-  ParseUUIDPipe,
-  ForbiddenException,
-  HttpStatus,
-  ParseIntPipe,
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
+
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -31,7 +23,6 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Res } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { UserEntity } from 'src/entities/user.entity';
 import { AuthGuard } from './auth.guard';
 
 @ApiTags('Auth') // swagger tag
@@ -71,6 +62,29 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.refreshTokens(req, res);
+  }
+
+  @Get('google')
+  @UseGuards(PassportAuthGuard('google'))
+  googleAuth() {
+    // Redirects to Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(PassportAuthGuard('google'))
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    const { accessToken, user } = await this.authService.loginWithGoogle(
+      req.user,
+      res,
+    );
+
+    const queryParams = new URLSearchParams({
+      accessToken,
+      user: JSON.stringify(user),
+    }).toString();
+
+    // redirect to frontend with token in query
+    res.redirect(`http://localhost:5173/google-success?${queryParams}`);
   }
 
   @ApiBearerAuth('JWT-auth')

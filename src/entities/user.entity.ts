@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'User' })
 export class UserEntity {
@@ -8,7 +8,7 @@ export class UserEntity {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column()
@@ -28,4 +28,10 @@ export class UserEntity {
 
   @Column({ nullable: true })
   dateOfBirth: string;
+
+  @Column({ nullable: true }) // New: For Google OAuth users
+  googleId: string;
+
+  @Column({ default: 'credentials' }) // New: "credentials" | "google" | ...
+  provider: string;
 }

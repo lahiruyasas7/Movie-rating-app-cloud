@@ -1,17 +1,19 @@
-import { registerAs } from "@nestjs/config";
-import { applicationConfig } from "./config";
+import { registerAs } from '@nestjs/config';
+import { applicationConfig } from './config';
 
 export default registerAs('app', () => ({
-     // General Config
+  // General Config
   nodeEnv: applicationConfig.nodeEnv,
   name: applicationConfig.appName,
   port: applicationConfig.port,
   apiPrefix: applicationConfig.apiPrefix,
   fallbackLanguage: applicationConfig.appFallBackLanguage,
-  //frontendUrl: applicationConfig.frontendUrl,
+  frontendUrl: applicationConfig.frontendUrl,
   jwtSecret: applicationConfig.jwtSecret,
   nodemailerEmail: applicationConfig.nodemailerEmail,
   nodemailerPassword: applicationConfig.nodemailerPassword,
+  googleClientId: applicationConfig.googleClientId,
+  googleClientSecret: applicationConfig.googleClientSecret,
 
   // Database Config
   databaseType: 'postgres',

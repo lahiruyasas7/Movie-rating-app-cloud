@@ -11,6 +11,8 @@ export const applicationConfig = {
   jwtSecret: process.env[`JWT_SECRET`],
   nodemailerEmail: process.env[`NODEMAILER_EMAIL`],
   nodemailerPassword: process.env[`NODEMAILER_PASSWORD`],
+  googleClientId: process.env[`GOOGLE_CLIENT_ID`],
+  googleClientSecret: process.env[`GOOGLE_CLIENT_SECRET`],
 
   database: {
     host: process.env[`DATABASE_HOST`],

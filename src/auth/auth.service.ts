@@ -160,6 +160,49 @@ export class AuthService {
     }
   }
 
+  async loginWithGoogle(googleProfile: any, res: Response) {
+    const { email, name, picture, googleId } = googleProfile;
+
+    let user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      const [firstName, ...rest] = name.split(' ');
+      const lastName = rest.join(' ');
+
+      user = this.userRepository.create({
+        email,
+        firstName,
+        lastName,
+        profileImageUrl: picture,
+        googleId,
+        provider: 'google',
+      });
+
+      await this.userRepository.save(user);
+    }
+
+    // Now issue tokens as usual
+    const payload = {
+      userId: user.userId,
+      email: user.email,
+    };
+
+    const tokens = this.generateTokens(payload);
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/auth/refresh',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      accessToken: tokens.accessToken,
+      user: payload,
+    };
+  }
+
   generateTokens(payload: any) {
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
