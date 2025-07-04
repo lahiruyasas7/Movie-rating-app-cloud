@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 
 import {
   ApiBearerAuth,
@@ -61,6 +62,26 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.refreshTokens(req, res);
+  }
+
+  @Get('google')
+  @UseGuards(PassportAuthGuard('google'))
+  googleAuth() {
+    // Redirects to Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(PassportAuthGuard('google'))
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    const { accessToken } = await this.authService.loginWithGoogle(
+      req.user,
+      res,
+    );
+
+    // redirect to frontend with token in query
+    res.redirect(
+      `http://localhost:5173/google-success?accessToken=${accessToken}`,
+    );
   }
 
   @ApiBearerAuth('JWT-auth')
