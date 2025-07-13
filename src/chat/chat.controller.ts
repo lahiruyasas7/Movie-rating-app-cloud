@@ -1,34 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from 'src/entities/user.entity';
+import { Not, Repository } from 'typeorm';
 
 @Controller('chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    @InjectRepository(UserEntity)
+    private userRepo: Repository<UserEntity>,
+  ) {}
 
-  @Post()
-  create(@Body() createChatDto: CreateChatDto) {
-    return this.chatService.create(createChatDto);
+  @Get('messages')
+  async getChat(@Query('user1') user1: string, @Query('user2') user2: string) {
+    return this.chatService.getMessages(user1, user2);
   }
 
-  @Get()
-  findAll() {
-    return this.chatService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.chatService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
-    return this.chatService.update(+id, updateChatDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.chatService.remove(+id);
+  @Get('get-all-chats')
+  async getAllExcept(@Query('exclude') excludeId: string) {
+    return this.userRepo.find({
+      where: excludeId ? { userId: Not(excludeId) } : {},
+      select: ['userId', 'firstName', 'profileImageUrl'], // only public info
+    });
   }
 }
