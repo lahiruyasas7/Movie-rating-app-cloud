@@ -11,7 +11,7 @@ import { UserEntity } from './user.entity';
 
 
 @Entity('message')
-export class MessageEntity {
+export class ChatEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
