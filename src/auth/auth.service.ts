@@ -232,6 +232,7 @@ export class AuthService {
       profileImageUrl: userData.profileImageUrl,
       address: userData.address,
       dateOfBirth: userData.dateOfBirth,
+      googleId: userData.googleId,
     };
   }
 }
