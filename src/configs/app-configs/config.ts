@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
 export const applicationConfig = {
-    port: parseInt(process.env[`APP_PORT`], 10) || 3003,
+  port: parseInt(process.env[`APP_PORT`], 10) || 3003,
   nodeEnv: process.env[`NODE_ENV`],
   appName: process.env[`APP_NAME`],
   apiPrefix: process.env[`API_PREFIX`] || 'api',
@@ -26,4 +26,10 @@ export const applicationConfig = {
     rejectUnauthorized: process.env[`DATABASE_REJECT_UNAUTHORIZED`],
     nodeTlsRejectUnauthorized: process.env[`NODE_TLS_REJECT_UNAUTHORIZED`],
   },
-}
+  aws: {
+    accessKeyId: process.env[`AWS_ACCESS_KEY_ID`],
+    secretAccessKey: process.env[`AWS_SECRET_ACCESS_KEY`],
+    region: process.env[`AWS_REGION`],
+    s3BucketName: process.env[`AWS_S3_BUCKET_NAME`],
+  },
+};
