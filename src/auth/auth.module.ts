@@ -6,8 +6,8 @@ import { UserEntity } from 'src/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/google.strategy';
-import { s3ClientProvider } from 'src/configs/aws-configs/s3.config';
 import { MulterModule } from '@nestjs/platform-express';
+import { UploadService } from 'src/util/uploadTos3.service';
 
 @Module({
   imports: [
@@ -20,9 +20,9 @@ import { MulterModule } from '@nestjs/platform-express';
     }),
     TypeOrmModule.forFeature([UserEntity]),
     MulterModule.register({}),
-    ConfigModule.forRoot(),
+    //ConfigModule.forRoot(),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JWTAuthService, GoogleStrategy, s3ClientProvider],
+  providers: [AuthService, JWTAuthService, GoogleStrategy, UploadService],
 })
 export class AuthModule {}
