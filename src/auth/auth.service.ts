@@ -2,11 +2,10 @@ import {
   ConflictException,
   Injectable,
   Logger,
+  NotFoundException,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +15,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Request, Response } from 'express';
+import { UpdateUserDto } from './dto/update-user-details.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +29,7 @@ export class AuthService {
 
   ///////////////////  User Registration //////////////////////////
 
-  async register(registerUserDto: RegisterUserDto) {
+  async register(registerUserDto: RegisterUserDto, profileImageUrl?: string) {
     try {
       this.logger.debug('register user');
       const {
@@ -38,7 +38,6 @@ export class AuthService {
         firstName,
         lastName,
         phone,
-        //profileImage,
         address,
         dateOfBirth,
       } = registerUserDto;
@@ -61,8 +60,7 @@ export class AuthService {
         firstName,
         lastName,
         phone,
-
-        //profileImage,
+        profileImageUrl: profileImageUrl || null,
         address,
         dateOfBirth,
       });
@@ -127,6 +125,49 @@ export class AuthService {
       throw error instanceof ConflictException
         ? error
         : new UnauthorizedException('Failed to login');
+    }
+  }
+
+  ///////// Update User Details /////////////
+  async updateUser(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+    newImageUrl?: string,
+  ) {
+    try {
+      const user = await this.userRepository.findOne({ where: { userId } });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Block email and profileImageUrl updates for Google users
+      const isGoogleUser = !!user.googleId;
+
+      if (isGoogleUser) {
+        if (updateUserDto.email) {
+          throw new ConflictException(
+            'Cannot update email for Google-authenticated users',
+          );
+        }
+        if (newImageUrl) {
+          throw new ConflictException(
+            'Cannot update profile image for Google-authenticated users',
+          );
+        }
+      }
+
+      // Merge fields
+      Object.assign(user, updateUserDto);
+
+      if (!isGoogleUser && newImageUrl) {
+        user.profileImageUrl = newImageUrl;
+      }
+
+      return await this.userRepository.save(user);
+    } catch (error) {
+      this.logger.error(`update user ${userId} ${error}`);
+      throw new UnauthorizedException('Failed to update user details');
     }
   }
 
