@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm ci RUN npm ci --legacy-peer-deps
 
 # Copy source and build
 COPY . .
@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Copy only production deps
 COPY package*.json ./
-RUN npm ci --production
+RUN npm ci --production RUN npm ci --legacy-peer-deps
 
 # Copy compiled output
 COPY --from=builder /app/dist ./dist
@@ -26,3 +26,4 @@ EXPOSE 3001
 
 # Start the server
 CMD ["node", "dist/main"]
+
