@@ -34,6 +34,13 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       //entities: [__dirname + '../../*/.entity{.ts,.js}'],
       entities: [UserEntity, SampleEntity],
       migrations: [__dirname + '/migrations/*/{.ts,.js}'],
+      ssl:
+        this.getValue('app.databaseSslEnabled') === 'true'
+          ? {
+              rejectUnauthorized:
+                this.getValue('app.databaseRejectUnauthorized') === 'true',
+            }
+          : undefined,
       cli: {
         entitiesDir: 'src',
         migrationsDir: 'src/database-config/migrations',
