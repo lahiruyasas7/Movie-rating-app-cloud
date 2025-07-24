@@ -5,7 +5,8 @@ import { ConfigService } from '@nestjs/config'; //Provides access to .env values
 import { setupSwagger } from './configs/swager-config/swagger';
 import * as bodyParser from 'body-parser'; //Middleware to parse request bodies (JSON, URL-encoded) and cookies, respectively.
 import * as cookieParser from 'cookie-parser'; //Middleware to parse request bodies (JSON, URL-encoded) and cookies, respectively.
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule); //Initializes the NestJS app using the root module.
   app.setGlobalPrefix(process.env.API_PREFIX, {
