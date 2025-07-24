@@ -67,6 +67,13 @@ jobs:
             mkdir -p ~/app
             echo "${{ secrets.ENV_FILE }}" | base64 -d > ~/app/.env
 
+            echo "Verifying .env content..."
+
+            if [ ! -f ~/app/.env ]; then
+            echo "❌ .env file not found at ~/app/.env"
+            exit 1
+            fi
+
             echo "Running new container..."
             docker run -d \
               --name $APP_NAME \
