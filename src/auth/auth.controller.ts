@@ -34,6 +34,7 @@ import { S3 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { UploadService } from 'src/util/uploadTos3.service';
 import { UpdateUserDto } from './dto/update-user-details.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Auth') // swagger tag
 @Controller('auth')
@@ -69,6 +70,7 @@ export class AuthController {
       },
     },
   })
+  @SkipThrottle()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('profileImage'))
   @Post('register')
@@ -81,6 +83,7 @@ export class AuthController {
   }
 
   ///////// login /////////////
+  @SkipThrottle()
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: 'login a user' })
@@ -129,7 +132,7 @@ export class AuthController {
   }
 
   ////refresh token //////////
-
+  @SkipThrottle()
   @Post('refresh')
   @HttpCode(200)
   async refresh(
@@ -166,6 +169,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Get All User Details for logged user',
   })
+  @SkipThrottle()
   @Get(':id')
   @UseGuards(AuthGuard)
   async getUserById(@Param('id') id: string) {
