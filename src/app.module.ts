@@ -10,6 +10,7 @@ import appConfig from './configs/app-configs/app.config';
 import { ConfigModule } from '@nestjs/config';
 import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -27,11 +28,19 @@ import { APP_GUARD } from '@nestjs/core';
         limit: 10, // Number of allowed requests in that window
       },
     ]),
+    BullModule.forRoot({
+      connection: { host: 'localhost', port: 6379 },
+      defaultJobOptions: { attempts: 3 },
+    }),
+    BullModule.registerQueue({ name: 'video' }),
   ],
   controllers: [AppController],
-  providers: [AppService, {
+  providers: [
+    AppService,
+    {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    },],
+    },
+  ],
 })
 export class AppModule {}
