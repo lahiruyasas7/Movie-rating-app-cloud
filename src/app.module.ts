@@ -8,12 +8,49 @@ import { DatabaseModule } from './configs/database-config/database.module';
 import { ChatModule } from './chat/chat.module';
 import appConfig from './configs/app-configs/app.config';
 import { ConfigModule } from '@nestjs/config';
+import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { BullModule } from '@nestjs/bullmq';
+import { VideosController } from './videos/videos.controller';
+import { VideosProcessor } from './videos/videos.worker';
+import { VideoQueueEventsListener } from './videos/videos-queue.event';
 
 @Module({
-  imports: [AuthModule, AppConfigModule, DatabaseModule, ChatModule, ConfigModule.forRoot({
+  imports: [
+    AuthModule,
+    AppConfigModule,
+    DatabaseModule,
+    ChatModule,
+    ConfigModule.forRoot({
       load: [appConfig],
-    }),],
-  controllers: [AppController],
-  providers: [AppService],
+    }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default', // If name is not provided, the name is given as default
+        ttl: minutes(1), // Time window in minutes
+        limit: 10, // Number of allowed requests in that window
+      },
+    ]),
+    BullModule.forRoot({
+      connection: { host: 'localhost', port: 6379 },
+      defaultJobOptions: {
+        attempts: 3, // Max number of attempts for failed jobs
+        removeOnFail: 3000, // Keep data for the last 3000 failed jobs
+        removeOnComplete: 1000, // Keep data for the last 1000 completed jobs
+        backoff: 2000, // Wait at least 2 seconds before attempting the job again, after failure
+      },
+    }),
+    BullModule.registerQueue({ name: 'video' }),
+  ],
+  controllers: [AppController, VideosController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    VideosProcessor,
+    VideoQueueEventsListener,
+  ],
 })
 export class AppModule {}
