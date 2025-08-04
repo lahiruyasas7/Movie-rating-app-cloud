@@ -1,24 +1,62 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
-@Processor('video', { concurrency: 3 }) //concurrency means up to 3 jobs can be processed in parallel by the same worker.
+@Processor('video', { concurrency: 3 }) // Can run up to 3 jobs concurrently
 export class VideosProcessor extends WorkerHost {
   async process(job: Job) {
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const totalSteps = 5;
+
+    switch (job.name) {
+      case 'compress':
+        console.log('Starting compress task');
+        await this.runTaskWithProgress(job, totalSteps);
+
+        break;
+
+      case 'process':
+        console.log('Starting process task');
+        await this.runTaskWithProgress(job, totalSteps);
+
+        break;
+
+      default:
+        console.log(`Unknown job name: ${job.name}`);
+        break;
+    }
+  }
+
+  async runTaskWithProgress(job: Job, totalSteps: number) {
+    for (let step = 1; step <= totalSteps; step++) {
+      // Simulate work for each step with a timeout
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Calculate progress as a percentage
+      const progress = Math.round((step / totalSteps) * 100);
+
+      // Update job progress
+      await job.updateProgress(progress);
+    }
   }
 
   @OnWorkerEvent('active')
-  onloadeddata(job: Job) {
-    console.log(`got a new job with ${job.id}`);
+  onActive(job: Job) {
+    console.log(`Processing job with id ${job.id}`);
+  }
+
+  @OnWorkerEvent('progress')
+  onProgress(job: Job) {
+    console.log(`Job ${job.id} is in progress: ${job.progress}% completed.`);
   }
 
   @OnWorkerEvent('completed')
   onCompleted(job: Job) {
-    console.log(`job ${job.id} completed!`);
+    console.log(`Job with id ${job.id} COMPLETED!`);
   }
 
   @OnWorkerEvent('failed')
-  onFailed(job: Job, err: Error) {
-    console.error(`job ${job.id} failed with error: ${err.message}`);
+  onFailed(job: Job) {
+    console.log(
+      `Job with id ${job.id} FAILED! Attempt Number ${job.attemptsMade}`,
+    );
   }
 }
