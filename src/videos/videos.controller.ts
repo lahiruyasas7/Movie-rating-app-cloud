@@ -10,24 +10,26 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Queue } from 'bullmq';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './videos.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Videos')
 @Controller('videos')
 export class VideosController {
   constructor(
-    @InjectQueue('video') private readonly videoQueue: Queue,
+    // @InjectQueue('video') private readonly videoQueue: Queue,
     private readonly videoService: VideoService,
   ) {}
 
-  @Post('process')
-  async processVideo() {
-    await this.videoQueue.add('process', {
-      fileName: 'best-video',
-      fileType: 'mp4',
-    });
-    return {
-      message: 'Video processing job added to the queue',
-    };
-  }
+//   @Post('process')
+//   async processVideo() {
+//     await this.videoQueue.add('process', {
+//       fileName: 'best-video',
+//       fileType: 'mp4',
+//     });
+//     return {
+//       message: 'Video processing job added to the queue',
+//     };
+//   }
 
   @Post('add')
   @UseInterceptors(FileInterceptor('video'))
