@@ -52,4 +52,29 @@ export class UploadService {
       throw error;
     }
   }
+
+  async uploadVideo(file: Express.Multer.File): Promise<string> {
+    if (!file) return null;
+
+    const fileExt = extname(file.originalname);
+    const fileName = `user-videos/${uuid()}${fileExt}`;
+
+    const uploadParams = {
+      Bucket: this.bucketName,
+      Key: fileName,
+      Body: file.buffer,
+      ACL: 'public-read' as ObjectCannedACL,
+      ContentType: file.mimetype,
+    };
+
+    try {
+      await this.s3.send(new PutObjectCommand(uploadParams));
+      return `https://${this.bucketName}.s3.${this.configService.get(
+        'AWS_REGION',
+      )}.amazonaws.com/${fileName}`;
+    } catch (error) {
+      this.logger.error(`Failed to upload video to S3: ${error.message}`);
+      throw error;
+    }
+  }
 }
