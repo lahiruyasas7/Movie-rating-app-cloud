@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('videos')
 export class Video {
@@ -19,4 +25,7 @@ export class Video {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column()
+  userId: string;
 }
