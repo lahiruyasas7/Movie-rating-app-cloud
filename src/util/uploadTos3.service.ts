@@ -57,7 +57,7 @@ export class UploadService {
     if (!file) return null;
 
     const fileExt = extname(file.originalname);
-    const fileName = `videos/${uuid()}${fileExt}`;
+    const fileName = `user-videos/${uuid()}${fileExt}`;
 
     const uploadParams = {
       Bucket: this.bucketName,
