@@ -14,6 +14,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { VideosController } from './videos/videos.controller';
 import { VideosProcessor } from './videos/videos.worker';
 import { VideoQueueEventsListener } from './videos/videos-queue.event';
+import { VideoModule } from './videos/videos.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { VideoQueueEventsListener } from './videos/videos-queue.event';
     AppConfigModule,
     DatabaseModule,
     ChatModule,
+    VideoModule,
     ConfigModule.forRoot({
       load: [appConfig],
     }),
@@ -33,24 +35,21 @@ import { VideoQueueEventsListener } from './videos/videos-queue.event';
     ]),
     BullModule.forRoot({
       connection: { host: 'localhost', port: 6379 },
-      defaultJobOptions: {
-        attempts: 3, // Max number of attempts for failed jobs
-        removeOnFail: 3000, // Keep data for the last 3000 failed jobs
-        removeOnComplete: 1000, // Keep data for the last 1000 completed jobs
-        backoff: 2000, // Wait at least 2 seconds before attempting the job again, after failure
-      },
+      // defaultJobOptions: {
+      //   attempts: 3, // Max number of attempts for failed jobs
+      //   removeOnFail: 3000, // Keep data for the last 3000 failed jobs
+      //   removeOnComplete: 1000, // Keep data for the last 1000 completed jobs
+      //   backoff: 2000, // Wait at least 2 seconds before attempting the job again, after failure
+      // },
     }),
-    BullModule.registerQueue({ name: 'video' }),
   ],
-  controllers: [AppController, VideosController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    VideosProcessor,
-    VideoQueueEventsListener,
   ],
 })
 export class AppModule {}
