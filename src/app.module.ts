@@ -11,9 +11,6 @@ import { ConfigModule } from '@nestjs/config';
 import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
-import { VideosController } from './videos/videos.controller';
-import { VideosProcessor } from './videos/videos.worker';
-import { VideoQueueEventsListener } from './videos/videos-queue.event';
 import { VideoModule } from './videos/videos.module';
 
 @Module({
