@@ -17,7 +17,11 @@ export class VideoService {
     private readonly videoQueue: Queue,
   ) {}
 
-  async createVideo(dto: CreateVideoDto, file: Express.Multer.File) {
+  async createVideo(
+    dto: CreateVideoDto,
+    file: Express.Multer.File,
+    userId: string,
+  ) {
     try {
       const s3Url = await this.uploadService.uploadVideo(file);
 
@@ -25,6 +29,7 @@ export class VideoService {
         name: dto.name,
         description: dto.description,
         s3Url,
+        userId,
       });
 
       const saved = await this.videoRepo.save(video);
