@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { MulterModule } from '@nestjs/platform-express';
 import { UploadService } from 'src/util/uploadTos3.service';
+import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [
@@ -23,6 +24,13 @@ import { UploadService } from 'src/util/uploadTos3.service';
     //ConfigModule.forRoot(),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JWTAuthService, GoogleStrategy, UploadService],
+  providers: [
+    AuthService,
+    JWTAuthService,
+    GoogleStrategy,
+    UploadService,
+    AuthGuard,
+  ],
+  exports: [AuthGuard, JWTAuthService],
 })
 export class AuthModule {}
