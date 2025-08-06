@@ -6,6 +6,7 @@ import { VideosController } from './videos.controller';
 import { VideoService } from './videos.service';
 import { UploadService } from 'src/util/uploadTos3.service';
 import { VideoProcessor } from './video.processor';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -13,13 +14,9 @@ import { VideoProcessor } from './video.processor';
     BullModule.registerQueue({
       name: 'video-processing',
     }),
+    AuthModule,
   ],
   controllers: [VideosController],
-  providers: [
-    VideoService,
-    VideoProcessor,
-    UploadService,
-    //VideoQueueEventsListener,
-  ],
+  providers: [VideoService, VideoProcessor, UploadService],
 })
 export class VideoModule {}
