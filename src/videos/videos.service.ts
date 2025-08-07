@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,12 +10,15 @@ import { Repository } from 'typeorm';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { Video } from 'src/entities/video.entity';
 import { UploadService } from 'src/util/uploadTos3.service';
+import { UserEntity } from 'src/entities/user.entity';
 
 @Injectable()
 export class VideoService {
   constructor(
     @InjectRepository(Video)
     private readonly videoRepo: Repository<Video>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
     private readonly uploadService: UploadService,
     @InjectQueue('video-processing')
     private readonly videoQueue: Queue,
@@ -23,6 +30,10 @@ export class VideoService {
     userId: string,
   ) {
     try {
+      const user = await this.userRepo.findOne({ where: { userId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
       const s3Url = await this.uploadService.uploadVideo(file);
 
       const video = this.videoRepo.create({
