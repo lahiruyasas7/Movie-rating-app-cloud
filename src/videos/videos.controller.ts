@@ -36,7 +36,7 @@ export class VideosController {
   //     };
   //   }
 
-  @Post('add:userId')
+  @Post('add/:userId')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('video'))
   async uploadVideo(
