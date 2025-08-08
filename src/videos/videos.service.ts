@@ -11,6 +11,7 @@ import { CreateVideoDto } from './dto/create-video.dto';
 import { Video } from 'src/entities/video.entity';
 import { UploadService } from 'src/util/uploadTos3.service';
 import { UserEntity } from 'src/entities/user.entity';
+import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Injectable()
 export class VideoService {
@@ -70,6 +71,47 @@ export class VideoService {
     } catch (error) {
       console.error('Error fetching videos:', error);
       throw new InternalServerErrorException('Failed to fetch videos');
+    }
+  }
+
+  async updateVideo(
+    id: string,
+    dto: UpdateVideoDto,
+    file?: Express.Multer.File,
+  ): Promise<Video> {
+    const video = await this.videoRepo.findOne({ where: { id } });
+    if (!video) {
+      throw new NotFoundException('Video not found');
+    }
+
+    // Update fields if provided
+    if (dto.name) video.name = dto.name;
+    if (dto.description) video.description = dto.description;
+
+    // Replace video in S3 if new file provided
+    if (file) {
+      // Optional: Delete old file from S3
+      const oldKey = video.s3Url.split('.amazonaws.com/')[1];
+      await this.uploadService.deleteFile(oldKey);
+
+      // Upload new file
+      const newS3Url = await this.uploadService.uploadVideo(file);
+      video.s3Url = newS3Url;
+    }
+
+    return await this.videoRepo.save(video);
+  }
+
+  async getVideoById(id: string): Promise<Video> {
+    try {
+      const video = await this.videoRepo.findOne({ where: { id } });
+      if (!video) {
+        throw new NotFoundException('Video not found');
+      }
+      return video;
+    } catch (error) {
+      console.error('Error fetching video:', error);
+      throw new InternalServerErrorException('Failed to fetch video');
     }
   }
 }

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Request,
   UploadedFile,
   UseGuards,
@@ -16,6 +17,7 @@ import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './videos.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { UpdateVideoDto } from './dto/update-video.dto';
 //import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Videos')
@@ -53,12 +55,32 @@ export class VideosController {
   }
 
   @ApiBearerAuth('JWT-auth')
-    @ApiOperation({
-      summary: 'Get User videos by userId',
-    })
+  @ApiOperation({
+    summary: 'Get User videos by userId',
+  })
   @Get('by-userId/:userId')
   @UseGuards(AuthGuard)
   async getVideosByUserId(@Param('userId') userId: string) {
     return this.videoService.getVideosByUserId(userId);
+  }
+
+  @Put('update/:id')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('video'))
+  async updateVideo(
+    @Param('id') id: string,
+    @Body() dto: UpdateVideoDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.videoService.updateVideo(id, dto, file);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Get User video by video ID',
+  })
+  @Get('one-video/:videoId')
+  async getVideoById(@Param('id') id: string) {
+    return this.videoService.getVideoById(id);
   }
 }
