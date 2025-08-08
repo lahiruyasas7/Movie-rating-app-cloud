@@ -14,7 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Queue } from 'bullmq';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './videos.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 //import { AuthGuard } from '@nestjs/passport';
 
@@ -37,6 +37,10 @@ export class VideosController {
   //     };
   //   }
 
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'add user video',
+  })
   @Post('add/:userId')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('video'))
@@ -48,6 +52,10 @@ export class VideosController {
     return this.videoService.createVideo(dto, file, userId);
   }
 
+  @ApiBearerAuth('JWT-auth')
+    @ApiOperation({
+      summary: 'Get User videos by userId',
+    })
   @Get('by-userId/:userId')
   @UseGuards(AuthGuard)
   async getVideosByUserId(@Param('userId') userId: string) {
