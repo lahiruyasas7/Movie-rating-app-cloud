@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import {
   Body,
   Controller,
+  Get,
   Param,
   Post,
   Request,
@@ -45,5 +46,11 @@ export class VideosController {
     @Param('userId') userId: string,
   ) {
     return this.videoService.createVideo(dto, file, userId);
+  }
+
+  @Get('by-userId/:userId')
+  @UseGuards(AuthGuard)
+  async getVideosByUserId(@Param('userId') userId: string) {
+    return this.videoService.getVideosByUserId(userId);
   }
 }

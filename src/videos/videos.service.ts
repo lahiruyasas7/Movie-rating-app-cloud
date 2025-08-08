@@ -57,4 +57,19 @@ export class VideoService {
       throw new InternalServerErrorException('Failed to create video');
     }
   }
+
+  async getVideosByUserId(userId: string) {
+    try {
+      const videos = await this.videoRepo.find({
+        where: { userId },
+      });
+      if (!videos || videos.length === 0) {
+        throw new NotFoundException('No videos found for this user');
+      }
+      return videos;
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      throw new InternalServerErrorException('Failed to fetch videos');
+    }
+  }
 }
