@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -19,6 +20,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UpdateVideoDto } from './dto/update-video.dto';
 //import { AuthGuard } from '@nestjs/passport';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Videos')
 @Controller('videos')
@@ -58,6 +60,7 @@ export class VideosController {
   @ApiOperation({
     summary: 'Get User videos by userId',
   })
+  @SkipThrottle()
   @Get('by-userId/:userId')
   @UseGuards(AuthGuard)
   async getVideosByUserId(@Param('userId') userId: string) {
@@ -79,8 +82,19 @@ export class VideosController {
   @ApiOperation({
     summary: 'Get User video by video ID',
   })
-  @Get('one-video/:videoId')
+  @SkipThrottle()
+  @Get('one-video/:id')
   async getVideoById(@Param('id') id: string) {
     return this.videoService.getVideoById(id);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Delete User video',
+  })
+  @Delete('delete/:id')
+  @UseGuards(AuthGuard)
+  async deleteVideo(@Param('id') id: string) {
+    return this.videoService.deleteVideo(id);
   }
 }

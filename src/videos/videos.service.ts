@@ -104,14 +104,39 @@ export class VideoService {
 
   async getVideoById(id: string): Promise<Video> {
     try {
+      console.log('Fetching video with ID:', id);
       const video = await this.videoRepo.findOne({ where: { id } });
       if (!video) {
         throw new NotFoundException('Video not found');
       }
+      console.log('Video found:', video);
       return video;
     } catch (error) {
       console.error('Error fetching video:', error);
       throw new InternalServerErrorException('Failed to fetch video');
+    }
+  }
+
+  async deleteVideo(id: string): Promise<{ message: string }> {
+    try {
+      const video = await this.videoRepo.findOne({ where: { id } });
+      if (!video) {
+        throw new NotFoundException('Video not found');
+      }
+
+      // Extract the S3 key from the s3Url
+      const fileKey = video.s3Url.split('.amazonaws.com/')[1];
+
+      // Delete file from S3
+      await this.uploadService.deleteFile(fileKey);
+
+      // Delete video from database
+      await this.videoRepo.remove(video);
+
+      return { message: 'Video deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      throw new InternalServerErrorException('Failed to delete video');
     }
   }
 }
