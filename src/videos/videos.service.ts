@@ -64,12 +64,20 @@ export class VideoService {
       const videos = await this.videoRepo.find({
         where: { userId },
       });
+
       if (!videos || videos.length === 0) {
         throw new NotFoundException('No videos found for this user');
       }
+
       return videos;
     } catch (error) {
       console.error('Error fetching videos:', error);
+
+      // If it's already a known exception, re-throw it
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
       throw new InternalServerErrorException('Failed to fetch videos');
     }
   }
