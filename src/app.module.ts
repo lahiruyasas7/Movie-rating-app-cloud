@@ -27,7 +27,7 @@ import { VideoModule } from './videos/videos.module';
       {
         name: 'default', // If name is not provided, the name is given as default
         ttl: minutes(1), // Time window in minutes
-        limit: 10, // Number of allowed requests in that window
+        limit: 100, // Number of allowed requests in that window
       },
     ]),
     BullModule.forRoot({
