@@ -18,14 +18,18 @@ async function bootstrap() {
   app.enableCors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], //Allows cross-origin requests from your frontend (likely running on port 5173, e.g., Vite).
     credentials: true,
-    origin: 'http://localhost:5173',
+    origin: [
+      'http://localhost:5173',
+      /\.dvpboizmwebnl\.amplifyapp\.com$/, // Regex to allow all subdomains
+      'https://main.dvpboizmwebnl.amplifyapp.com',
+    ],
   });
 
   // Setup Swagger
   setupSwagger(app);
   app.use(bodyParser.json({ limit: '5000mb' }));
   app.use(bodyParser.urlencoded({ limit: '5000mb', extended: true }));
-  app.use(cookieParser());  //Parses cookies in incoming requests. Useful for sessions/authentication.
+  app.use(cookieParser()); //Parses cookies in incoming requests. Useful for sessions/authentication.
   await app.listen(configService.get('app.port'), () => {
     console.log(`Server running at port: ${configService.get('app.port')}`);
   });
