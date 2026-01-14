@@ -19,7 +19,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], //Allows cross-origin requests from your frontend (likely running on port 5173, e.g., Vite).
     credentials: true,
     origin: [
-      'http://localhost:5173',
+      `${process.env.FRONTEND_URL}`,
       /\.dvpboizmwebnl\.amplifyapp\.com$/, // Regex to allow all subdomains
       'https://main.dvpboizmwebnl.amplifyapp.com',
     ],
