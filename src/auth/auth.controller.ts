@@ -162,7 +162,7 @@ export class AuthController {
     }).toString();
 
     // redirect to frontend with token in query
-    res.redirect(`http://localhost:5173/google-success?${queryParams}`);
+    res.redirect(`${process.env.FRONTEND_URL}/google-success?${queryParams}`);
   }
 
   @ApiBearerAuth('JWT-auth')
