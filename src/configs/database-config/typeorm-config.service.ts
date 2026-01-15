@@ -1,51 +1,60 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
-import { SampleEntity } from 'src/entities/sample.entity';
-import { UserEntity } from 'src/entities/user.entity';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
-  constructor(private configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   private getValue(key: string, throwOnMissing = true): string {
-    const value = this.configService.get(key);
+    const value = this.configService.get<string>(key);
     if (!value && throwOnMissing) {
       throw new Error(`config error - missing env.${key}`);
     }
-
     return value;
   }
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
+    const databaseUrl = this.configService.get<string>('DATABASE_URL');
+
+    if (databaseUrl) {
+      return this.createUrlBasedConfig(databaseUrl);
+    }
+
+    return this.createHostBasedConfig();
+  }
+
+  private createUrlBasedConfig(databaseUrl: string): TypeOrmModuleOptions {
     return {
-      type: this.getValue('app.databaseType'),
-      host: this.getValue('app.databaseHost'),
-      port: this.getValue('app.databasePort'),
-      username: this.getValue('app.databaseUserName'),
-      password: this.getValue('app.databasePassword'),
-      database: this.getValue('app.databaseName'),
-      synchronize: true,
-      dropSchema: false,
+      type: 'postgres',
+      url: databaseUrl,
       autoLoadEntities: true,
-      keepConnectionAlive: true,
-      // logging: this.configService.get('app.nodeEnv') !== 'production',
+      synchronize: false, // REQUIRED for Supabase
       logging: true,
-      //entities: [__dirname + '../../*/.entity{.ts,.js}'],
-      entities: [UserEntity, SampleEntity],
-      migrations: [__dirname + '/migrations/*/{.ts,.js}'],
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    };
+  }
+
+  private createHostBasedConfig(): TypeOrmModuleOptions {
+    return {
+      type: 'postgres',
+      host: this.getValue('DATABASE_HOST'),
+      port: Number(this.getValue('DATABASE_PORT')),
+      username: this.getValue('DATABASE_USERNAME'),
+      password: this.getValue('DATABASE_PASSWORD'),
+      database: this.getValue('DATABASE_NAME'),
+      autoLoadEntities: true,
+      synchronize: true, // LOCAL ONLY
+      logging: true,
       ssl:
-        this.getValue('app.databaseSslEnabled') === 'true'
+        this.getValue('DATABASE_SSL_ENABLED', false) === 'true'
           ? {
               rejectUnauthorized:
-                this.getValue('app.databaseRejectUnauthorized') === 'true',
+                this.getValue('DATABASE_REJECT_UNAUTHORIZED', false) === 'true',
             }
-          : undefined,
-      cli: {
-        entitiesDir: 'src',
-        migrationsDir: 'src/database-config/migrations',
-        subscribersDir: 'subscriber',
-      },
-    } as TypeOrmModuleOptions;
+          : false,
+    };
   }
 }
