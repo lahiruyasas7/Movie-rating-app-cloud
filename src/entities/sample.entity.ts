@@ -1,9 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: 'Sample' })
 export class SampleEntity {
-  @PrimaryGeneratedColumn('uuid')
-  sampleId: string;
+  @PrimaryColumn('uuid', {
+      default: () => 'gen_random_uuid()',
+    })
+    id: string;
 
   @Column(Entity)
   sample: string;
