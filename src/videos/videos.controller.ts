@@ -1,4 +1,3 @@
-import { InjectQueue } from '@nestjs/bullmq';
 import {
   Body,
   Controller,
@@ -13,7 +12,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Queue } from 'bullmq';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './videos.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';

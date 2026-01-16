@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BullModule } from '@nestjs/bullmq';
+// import { BullModule } from '@nestjs/bullmq';
 import { Video } from 'src/entities/video.entity';
 import { VideosController } from './videos.controller';
 import { VideoService } from './videos.service';
@@ -12,9 +12,9 @@ import { UserEntity } from 'src/entities/user.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Video, UserEntity]),
-    BullModule.registerQueue({
-      name: 'video-processing',
-    }),
+    // BullModule.registerQueue({
+    //   name: 'video-processing',
+    // }),
     AuthModule,
   ],
   controllers: [VideosController],
