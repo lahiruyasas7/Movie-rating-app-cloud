@@ -30,15 +30,15 @@ import { VideoModule } from './videos/videos.module';
         limit: 100, // Number of allowed requests in that window
       },
     ]),
-    BullModule.forRoot({
-      connection: { host: 'localhost', port: 6379 },
-      // defaultJobOptions: {
-      //   attempts: 3, // Max number of attempts for failed jobs
-      //   removeOnFail: 3000, // Keep data for the last 3000 failed jobs
-      //   removeOnComplete: 1000, // Keep data for the last 1000 completed jobs
-      //   backoff: 2000, // Wait at least 2 seconds before attempting the job again, after failure
-      // },
-    }),
+    // BullModule.forRoot({
+    //   connection: { host: 'localhost', port: 6379 },
+    //   // defaultJobOptions: {
+    //   //   attempts: 3, // Max number of attempts for failed jobs
+    //   //   removeOnFail: 3000, // Keep data for the last 3000 failed jobs
+    //   //   removeOnComplete: 1000, // Keep data for the last 1000 completed jobs
+    //   //   backoff: 2000, // Wait at least 2 seconds before attempting the job again, after failure
+    //   // },
+    // }),
   ],
   controllers: [AppController],
   providers: [
