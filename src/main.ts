@@ -16,13 +16,17 @@ async function bootstrap() {
   const configService = app.get(ConfigService); //Fetches config settings like port, API keys, DB credentials from .env.
   //cors configuration
   app.enableCors({
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], //Allows cross-origin requests from your frontend (likely running on port 5173, e.g., Vite).
-    credentials: true,
-    origin: [
-      `${process.env.FRONTEND_URL}`,
-      /\.dvpboizmwebnl\.amplifyapp\.com$/, // Regex to allow all subdomains
-      'https://main.dvpboizmwebnl.amplifyapp.com',
-    ],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // allow non-browser requests like Postman
+      const frontendUrl = process.env.FRONTEND_URL;
+      if (frontendUrl && origin === frontendUrl) {
+        callback(null, true); // allow this origin
+      } else {
+        callback(new Error(`CORS not allowed for origin: ${origin}`)); // block any other origin
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // allowed HTTP methods
+    credentials: true, // allow cookies and Authorization headers
   });
 
   // Setup Swagger
