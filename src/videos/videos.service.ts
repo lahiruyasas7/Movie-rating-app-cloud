@@ -3,8 +3,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
+//import { InjectQueue } from '@nestjs/bullmq';
+// { Queue } from 'bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateVideoDto } from './dto/create-video.dto';
@@ -21,8 +21,8 @@ export class VideoService {
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
     private readonly uploadService: UploadService,
-    @InjectQueue('video-processing')
-    private readonly videoQueue: Queue,
+    //@InjectQueue('video-processing')
+    //private readonly videoQueue: Queue,
   ) {}
 
   async createVideo(
@@ -46,11 +46,11 @@ export class VideoService {
 
       const saved = await this.videoRepo.save(video);
 
-      // Enqueue background job
-      await this.videoQueue.add('process-video', {
-        videoId: saved.id,
-        s3Url,
-      });
+      // // Enqueue background job
+      // await this.videoQueue.add('process-video', {
+      //   videoId: saved.id,
+      //   s3Url,
+      // });
 
       return saved;
     } catch (error) {
