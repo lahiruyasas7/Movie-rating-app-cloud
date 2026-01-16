@@ -2,13 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('videos')
 export class Video {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid', {
+    default: () => 'gen_random_uuid()',
+  })
   id: string;
 
   @Column()

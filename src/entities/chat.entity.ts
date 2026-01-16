@@ -2,17 +2,18 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { UserEntity } from './user.entity';
 
-
 @Entity('message')
 export class ChatEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid', {
+    default: () => 'gen_random_uuid()',
+  })
   id: string;
 
   @Column()
