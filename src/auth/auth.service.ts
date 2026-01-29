@@ -122,7 +122,7 @@ export class AuthService {
       };
 
       const tokens = this.generateTokens(payload);
-      const isProd = process.env.NODE_ENV === 'production';
+     
       // Send refreshToken in secure HttpOnly cookie
       res.cookie(
         'refreshToken',
