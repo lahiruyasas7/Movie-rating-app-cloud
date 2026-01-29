@@ -122,7 +122,7 @@ export class AuthService {
       };
 
       const tokens = this.generateTokens(payload);
-     
+
       // Send refreshToken in secure HttpOnly cookie
       res.cookie(
         'refreshToken',
@@ -238,13 +238,11 @@ export class AuthService {
 
     const tokens = this.generateTokens(payload);
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      path: '/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie(
+      'refreshToken',
+      tokens.refreshToken,
+      this.getRefreshCookieOptions(),
+    );
 
     return {
       accessToken: tokens.accessToken,
