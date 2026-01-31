@@ -179,4 +179,11 @@ export class AuthController {
     }
     return user;
   }
+
+  ///log out////
+  @Post('logout')
+  @HttpCode(200)
+  logout(@Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(res);
+  }
 }

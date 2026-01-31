@@ -138,6 +138,15 @@ export class AuthService {
     }
   }
 
+  ///log out service///
+  logout(res: Response) {
+    res.clearCookie('refreshToken', {
+      path: '/auth/refresh',
+    });
+
+    return { message: 'Logged out successfully' };
+  }
+
   ///////// Update User Details /////////////
   async updateUser(
     userId: string,
