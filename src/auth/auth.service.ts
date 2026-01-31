@@ -27,6 +27,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private getRefreshCookieOptions() {
+    const isProd = process.env.NODE_ENV === 'production';
+
+    return {
+      httpOnly: true,
+      secure: isProd, // true in production with HTTPS and false in local with http
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/auth/refresh',
+      maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
+    } as const;
+  }
+
   ///////////////////  User Registration //////////////////////////
 
   async register(registerUserDto: RegisterUserDto, profileImageUrl?: string) {
@@ -112,13 +124,11 @@ export class AuthService {
       const tokens = this.generateTokens(payload);
 
       // Send refreshToken in secure HttpOnly cookie
-      res.cookie('refreshToken', tokens.refreshToken, {
-        httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
-        sameSite: 'lax',
-        path: '/auth/refresh',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
+      res.cookie(
+        'refreshToken',
+        tokens.refreshToken,
+        this.getRefreshCookieOptions(),
+      );
 
       return { accessToken: tokens.accessToken, user: payload };
     } catch (error) {
@@ -126,6 +136,15 @@ export class AuthService {
         ? error
         : new UnauthorizedException('Failed to login');
     }
+  }
+
+  ///log out service///
+  logout(res: Response) {
+    res.clearCookie('refreshToken', {
+      path: '/auth/refresh',
+    });
+
+    return { message: 'Logged out successfully' };
   }
 
   ///////// Update User Details /////////////
@@ -187,13 +206,11 @@ export class AuthService {
       });
 
       // Set new refresh token in HttpOnly cookie
-      res.cookie('refreshToken', newTokens.refreshToken, {
-        httpOnly: true,
-        secure: false, // set to true in production with HTTPS
-        sameSite: 'lax',
-        path: '/auth/refresh',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie(
+        'refreshToken',
+        newTokens.refreshToken,
+        this.getRefreshCookieOptions(),
+      );
 
       return { accessToken: newTokens.accessToken };
     } catch (err) {
@@ -230,13 +247,11 @@ export class AuthService {
 
     const tokens = this.generateTokens(payload);
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      path: '/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie(
+      'refreshToken',
+      tokens.refreshToken,
+      this.getRefreshCookieOptions(),
+    );
 
     return {
       accessToken: tokens.accessToken,
