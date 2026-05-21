@@ -4,10 +4,14 @@ import {
   PutObjectCommand,
   ObjectCannedACL,
   DeleteObjectCommand,
+  HeadObjectCommand,
 } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+const PRESIGNED_URL_EXPIRES_IN_SECONDS = 900; // 15 minutes
 
 @Injectable()
 export class UploadService {
@@ -53,42 +57,71 @@ export class UploadService {
     }
   }
 
-  async uploadVideo(file: Express.Multer.File): Promise<string> {
-    if (!file) return null;
+  /**
+   * Generates a presigned PUT URL so the client can upload
+   * the video file directly to S3 — your server never touches
+   * the file bytes.
+   */
+  async generateVideoPresignedUrl(
+    originalName: string,
+    mimetype: string,
+  ): Promise<{ presignedUrl: string; s3Key: string }> {
+    const fileExt = extname(originalName).toLowerCase();
+    const s3Key = `user-videos/${uuid()}${fileExt}`;
 
-    const fileExt = extname(file.originalname);
-    const fileName = `user-videos/${uuid()}${fileExt}`;
-
-    const uploadParams = {
+    const command = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: fileName,
-      Body: file.buffer,
-      ACL: 'public-read' as ObjectCannedACL,
-      ContentType: file.mimetype,
-    };
+      Key: s3Key,
+      ContentType: mimetype,
+    });
 
+    const presignedUrl = await getSignedUrl(this.s3 as any, command, {
+      expiresIn: PRESIGNED_URL_EXPIRES_IN_SECONDS,
+    });
+
+    return { presignedUrl, s3Key };
+  }
+  // ─── Verify Upload ──────────────────────────────────────────────────────────
+
+  /**
+   * Checks that the object actually exists in S3 after
+   * the client reports a successful upload.
+   * Prevents fake confirm requests.
+   */
+  async verifyUpload(s3Key: string): Promise<boolean> {
     try {
-      await this.s3.send(new PutObjectCommand(uploadParams));
-      return `https://${this.bucketName}.s3.${this.configService.get(
-        'AWS_REGION',
-      )}.amazonaws.com/${fileName}`;
-    } catch (error) {
-      this.logger.error(`Failed to upload video to S3: ${error.message}`);
-      throw error;
+      await this.s3.send(
+        new HeadObjectCommand({ Bucket: this.bucketName, Key: s3Key }),
+      );
+      return true;
+    } catch {
+      return false;
     }
   }
 
-  async deleteFile(key: string): Promise<void> {
-  try {
-    await this.s3.send(
-      new DeleteObjectCommand({
-        Bucket: this.bucketName,
-        Key: key,
-      }),
-    );
-  } catch (error) {
-    this.logger.error(`Failed to delete file from S3: ${error.message}`);
-    throw error;
+  // ─── Build Public URL ───────────────────────────────────────────────────────
+
+  buildPublicUrl(s3Key: string): string {
+    return `https://${this.bucketName}.s3.${this.configService.get(
+      'AWS_REGION',
+    )}.amazonaws.com/${s3Key}`;
   }
-}
+
+  // ─── Delete Object ──────────────────────────────────────────────────────────
+
+  async deleteObject(s3Key: string): Promise<void> {
+    try {
+      await this.s3.send(
+        new DeleteObjectCommand({ Bucket: this.bucketName, Key: s3Key }),
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      // Log but don't throw — deletion failure shouldn't break app flow.
+      // A background cleanup job can handle orphaned objects.
+      this.logger.warn(
+        `Failed to delete S3 object [${s3Key}]: ${errorMessage}`,
+      );
+    }
+  }
 }
